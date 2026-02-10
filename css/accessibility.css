@@ -1,4 +1,11 @@
-/* SETUP SCREEN */
+/* =========================================================
+   ACCESSIBILITY STYLING
+   High Contrast & Large Text Modes (for now)
+   ========================================================= */
+
+/* -----------------------------
+   BASE SETUP
+   ----------------------------- */
 
 #setup-screen {
   max-width: 720px;
@@ -40,7 +47,7 @@ button {
   font-family: inherit;
   font-size: 0.95rem;
 
-  padding: 0.6rem 1rem;
+  padding: 0.6rem 1.2rem;
   border-radius: 999px;
   border: none;
 
@@ -51,4 +58,85 @@ button {
 
 button:hover {
   opacity: 0.9;
+}
+
+button:focus {
+  outline: 3px solid rgba(0, 0, 0, 0.6);
+  outline-offset: 3px;
+}
+
+/* =========================================================
+   LARGE TEXT MODE
+   Trigger: body.large-text
+   ========================================================= */
+
+body.large-text {
+  --font-size-base: 22px;
+  --line-height: 1.9;
+}
+
+body.large-text #gesture-hints {
+  font-size: 1rem;
+}
+
+body.large-text button {
+  font-size: 1.05rem;
+}
+
+/* =========================================================
+   HIGH CONTRAST MODE
+   Trigger: body.high-contrast
+   ========================================================= */
+
+body.high-contrast {
+  --bg-overlay: #ffffff;
+  --text-color: #000000;
+  --accent-color: #000000;
+}
+
+body.high-contrast #reader {
+  background: #ffffff;
+  box-shadow: none;
+  border: 2px solid #000;
+}
+
+body.high-contrast #gesture-hints {
+  background: #000000;
+  color: #ffffff;
+}
+
+body.high-contrast .hint img {
+  filter: invert(1);
+}
+
+body.high-contrast textarea {
+  border: 2px solid #000;
+}
+
+body.high-contrast button {
+  background: #000;
+  color: #fff;
+}
+
+/* =========================================================
+   FOCUS & KEYBOARD VISIBILITY
+   (Often missed, very good UX)
+   ========================================================= */
+
+a:focus,
+button:focus,
+textarea:focus {
+  outline: 3px solid var(--accent-color);
+  outline-offset: 3px;
+}
+
+/* =========================================================
+   REDUCED MOTION SUPPORT
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
 }
