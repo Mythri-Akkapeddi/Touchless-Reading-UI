@@ -1,0 +1,46 @@
+:root {
+  /* Typography */
+  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-size-base: 18px;
+  --line-height: 1.7;
+
+  /* Layout */
+  --reader-width: 680px;
+
+  /* Colors */
+  --text-color: #2b2b2b;
+  --bg-overlay: rgba(245, 242, 235, 0.88);
+  --accent-color: #8b6f4e;
+
+  /* Spacing */
+  --space-lg: 2rem;
+  --space-xl: 3rem;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height);
+  color: var(--text-color);
+
+  background-image: url("../assets/images/coffee-book-bg.jpg");
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+
+  min-height: 100vh;
+}
+
+#camera,
+#debug-canvas {
+  display: none;
+}
+
+#app {
+  position: relative;
+}
