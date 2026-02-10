@@ -1,0 +1,42 @@
+#reader-screen {
+  display: none;
+  padding: var(--space-xl) var(--space-lg);
+}
+
+#reader {
+  max-width: var(--reader-width);
+  margin: 0 auto;
+
+  background: var(--bg-overlay);
+  padding: var(--space-xl);
+
+  border-radius: 12px;
+
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+
+  backdrop-filter: blur(2px);
+
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+#reader p {
+  margin-bottom: 1.2em;
+}
+
+#reader h1,
+#reader h2,
+#reader h3 {
+  margin-top: 2em;
+  color: #1f1f1f;
+}
+
+#scroll-indicator {
+  position: fixed;
+  right: 1rem;
+  top: 20%;
+  width: 4px;
+  height: 60%;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
+}
