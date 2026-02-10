@@ -2,33 +2,94 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Touchless Reading Interface</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Styles will be added later -->
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/reader.css" />
+  <link rel="stylesheet" href="css/gestures.css" />
+  <link rel="stylesheet" href="css/accessibility.css" />
 </head>
+
 <body>
 
-  <!-- Landing / Setup Screen -->
-  <main id="setup-screen">
-    <h1>Touchless Reading Interface</h1>
-    <p>
-      A hands-free reading experience using gesture-based interaction.
-    </p>
+  <!-- CAMERA (hidden for now) -->
+  <video id="camera" autoplay playsinline></video>
+  <canvas id="debug-canvas"></canvas>
 
-    <p>
-      This interface is designed for situations where touching the screen
-      is inconvenient or impractical.
-    </p>
+  <!-- APP -->
+  <main id="app">
 
-    <!-- Content input will go here later -->
+    <!-- SETUP SCREEN -->
+    <section id="setup-screen" class="active">
+      <h1>Touchless Reader</h1>
+
+      <p class="instruction">
+        Paste text or choose a sample to begin reading hands-free.
+      </p>
+
+      <textarea
+        id="text-input"
+        placeholder="Paste text here…"
+        rows="8"
+      ></textarea>
+
+      <div class="sample-buttons">
+        <button data-sample="recipe">Recipe</button>
+        <button data-sample="instructions">Instructions</button>
+        <button data-sample="article">Article</button>
+      </div>
+
+      <button id="start-reading">
+        Start Reading
+      </button>
+    </section>
+
+    <!-- READER SCREEN -->
+    <section id="reader-screen">
+      <article id="reader">
+        <p>
+          This is placeholder reading content. Loaded text will appear here
+          in reading mode.
+        </p>
+      </article>
+
+      <div id="scroll-indicator"></div>
+    </section>
+
   </main>
 
-  <!-- Reading Interface (hidden for now) -->
-  <section id="reader-screen" hidden>
-    <!-- Reader content will be injected here -->
-  </section>
+  <!-- GESTURE HINTS -->
+  <aside id="gesture-hints">
+    <div class="hint">
+      <img src="assets/icons/hand.svg" alt="Scroll gesture" />
+      <span>Move hand up / down to scroll</span>
+    </div>
 
-  <!-- Scripts will be added later -->
+    <div class="hint">
+      <img src="assets/icons/pinch.svg" alt="Pinch gesture" />
+      <span>Pinch to zoom</span>
+    </div>
+
+    <div class="hint">
+      <img src="assets/icons/brightness.svg" alt="Brightness gesture" />
+      <span>Thumb up / down for brightness</span>
+    </div>
+
+    <div class="hint">
+      <img src="assets/icons/highlight.svg" alt="Highlight gesture" />
+      <span>Point & hold to highlight</span>
+    </div>
+  </aside>
+
+  <!-- FEEDBACK -->
+  <div id="gesture-feedback">
+    <span id="active-gesture-label"></span>
+  </div>
+
+  <!-- JS (empty for now) -->
+  <script src="js/app.js"></script>
+
 </body>
 </html>
