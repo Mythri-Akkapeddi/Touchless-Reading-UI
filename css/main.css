@@ -36,11 +36,20 @@ body {
   min-height: 100vh;
 }
 
-#camera,
+/* #camera,
 #debug-canvas {
   display: none;
-}
+} */
 
 #app {
   position: relative;
+}
+
+#debug-canvas {
+  display: block;
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  width: 240px;
+  border-radius: 8px;
 }
