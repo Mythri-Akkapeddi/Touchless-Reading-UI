@@ -5,6 +5,7 @@ function detectGestures(landmarks) {
 
   detectScroll(landmarks);
   detectPinch(landmarks);
+  detectBrightness(landmarks);
 
 }
 
@@ -55,4 +56,27 @@ function detectPinch(landmarks) {
   }
 
   previousPinch = distance;
+}
+
+let previousThumbY = null;
+
+function detectBrightness(landmarks) {
+
+  const thumb = landmarks[4];
+  const currentY = thumb.y;
+
+  if (previousThumbY !== null) {
+
+    const delta = previousThumbY - currentY;
+
+    if (Math.abs(delta) > 0.01) {
+
+      adjustBrightness(delta * 0.5);
+
+      showGesture("Brightness");
+
+    }
+  }
+
+  previousThumbY = currentY;
 }
