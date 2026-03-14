@@ -140,3 +140,19 @@ textarea:focus {
     animation: none !important;
   }
 }
+
+/* =========================================================
+   DYNAMIC BRIGHTNESS OVERLAY
+   Controlled by JS
+   ========================================================= */
+
+#brightness-overlay {
+  position: fixed;
+  inset: 0;
+
+  pointer-events: none;
+
+  background: rgba(0,0,0,var(--brightness-level,0));
+
+  transition: background 0.15s linear;
+}
