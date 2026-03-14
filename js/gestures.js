@@ -6,6 +6,8 @@ function detectGestures(landmarks) {
   detectScroll(landmarks);
   detectPinch(landmarks);
   detectBrightness(landmarks);
+  detectHighlight(landmarks);
+
 
 }
 
@@ -79,4 +81,40 @@ function detectBrightness(landmarks) {
   }
 
   previousThumbY = currentY;
+}
+
+let pointHoldStart = null;
+
+function detectHighlight(landmarks) {
+
+  const index = landmarks[8];
+  const middle = landmarks[12];
+
+  const distance = Math.abs(index.y - middle.y);
+
+  const pointing = distance > 0.1;
+
+  if (pointing) {
+
+    if (!pointHoldStart) {
+      pointHoldStart = Date.now();
+    }
+
+    const heldTime = Date.now() - pointHoldStart;
+
+    if (heldTime > 800) {
+
+      highlightSentence();
+
+      showGesture("Highlight");
+
+      pointHoldStart = null;
+    }
+
+  } else {
+
+    pointHoldStart = null;
+
+  }
+
 }
