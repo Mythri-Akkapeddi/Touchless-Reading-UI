@@ -18,13 +18,21 @@ hands.setOptions({
 hands.onResults(onResults);
 
 function onResults(results) {
+
   ctx.save();
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   if (results.multiHandLandmarks) {
+
     for (const landmarks of results.multiHandLandmarks) {
+
       drawConnectors(ctx, landmarks, HAND_CONNECTIONS);
       drawLandmarks(ctx, landmarks);
+
+      const smoothed = smoothLandmarks(landmarks);
+
+      detectGestures(smoothed);
+
     }
   }
 
