@@ -1,284 +1,183 @@
+// =========================================================
+// gestures.js — fixed conflict + threshold version
+// =========================================================
+
 let activeGesture = null;
 let gestureCooldown = false;
 
-let previousY = null;
-let previousPinch = null;
+let previousWristY   = null;
+let previousPinch    = null;
+let previousThumbY   = null;
+let lastIndexY       = null;
+let stillStart       = null;
+
+// ── Cooldown helpers ─────────────────────────────────────
 
 function canTriggerGesture(name) {
-
   if (gestureCooldown) return false;
-
   if (activeGesture && activeGesture !== name) return false;
-
   return true;
 }
 
-function lockGesture(name) {
-
+function lockGesture(name, ms = 400) {
   activeGesture = name;
-
   gestureCooldown = true;
-
-  setTimeout(() => {
-    gestureCooldown = false;
-  }, 400);
-
+  setTimeout(() => { gestureCooldown = false; }, ms);
 }
 
 function releaseGesture() {
   activeGesture = null;
 }
 
-function detectGestures(landmarks) {
+// ── Pose classifier ──────────────────────────────────────
+// Returns: "open" | "pinch" | "thumbOnly" | "point" | "unknown"
+// This is the KEY addition — only one detector runs per frame.
 
-  detectScroll(landmarks);
-  detectPinch(landmarks);
-  detectBrightness(landmarks);
-  detectHighlight(landmarks);
+function classifyPose(lm) {
+  const thumbTip  = lm[4];
+  const indexTip  = lm[8];
+  const middleTip = lm[12];
+  const ringTip   = lm[16];
+  const pinkyTip  = lm[20];
 
+  const indexMcp  = lm[5];
+  const middleMcp = lm[9];
+  const ringMcp   = lm[13];
+  const pinkyMcp  = lm[17];
+  const wrist     = lm[0];
 
+  // Finger "extended" = tip is above (lower y) its MCP knuckle
+  const indexExt  = indexTip.y  < indexMcp.y  - 0.04;
+  const middleExt = middleTip.y < middleMcp.y - 0.04;
+  const ringExt   = ringTip.y   < ringMcp.y   - 0.04;
+  const pinkyExt  = pinkyTip.y  < pinkyMcp.y  - 0.04;
+
+  // Pinch = thumb & index close together, others relaxed
+  const dx = thumbTip.x - indexTip.x;
+  const dy = thumbTip.y - indexTip.y;
+  const pinchDist = Math.sqrt(dx*dx + dy*dy);
+  const isPinching = pinchDist < 0.08;
+
+  // Thumb-only = thumb extended upward, fingers curled
+  const thumbExtendedUp = thumbTip.y < wrist.y - 0.1;
+  const fingersAllCurled = !indexExt && !middleExt && !ringExt && !pinkyExt;
+
+  if (isPinching && !indexExt) return "pinch";
+  if (thumbExtendedUp && fingersAllCurled) return "thumbOnly";
+  if (indexExt && !middleExt && !ringExt && !pinkyExt) return "point";
+  return "open"; // default: treat as scroll/open-hand
 }
 
-// function detectScroll(landmarks) {
+// ── Main entry ───────────────────────────────────────────
 
-//   const wrist = landmarks[0];
-//   const currentY = wrist.y;
+function detectGestures(landmarks) {
+  const pose = classifyPose(landmarks);
 
-//   if (previousY !== null) {
+  // Reset pose-specific state when pose changes
+  if (pose !== "point")     { stillStart = null; lastIndexY = null; }
+  if (pose !== "thumbOnly") { previousThumbY = null; }
+  if (pose !== "open")      { previousWristY = null; }
+  if (pose !== "pinch")     { previousPinch = null; }
 
-//     const delta = currentY - previousY;
+  switch (pose) {
+    case "open":      detectScroll(landmarks);     break;
+    case "pinch":     detectPinch(landmarks);      break;
+    case "thumbOnly": detectBrightness(landmarks); break;
+    case "point":     detectHighlight(landmarks);  break;
+  }
+}
 
-//     if (Math.abs(delta) > 0.01) {
-
-//       const scrollAmount = delta * 600;
-
-//       scrollReader(scrollAmount);
-
-//       showGesture("Scroll");
-
-//     }
-//   }
-
-//   previousY = currentY;
-// }
+// ── Scroll ───────────────────────────────────────────────
 
 function detectScroll(landmarks) {
-
   const wrist = landmarks[0];
   const currentY = wrist.y;
 
-  if (previousY !== null) {
+  if (previousWristY !== null) {
+    const delta = currentY - previousWristY;
 
-    const delta = currentY - previousY;
-
-    if (Math.abs(delta) > 0.02 && canTriggerGesture("scroll")) {
-
-      lockGesture("scroll");
-
-      const scrollAmount = delta * 600;
-
-      scrollReader(scrollAmount);
-
+    // Raised to 0.05 — arm-drop is usually 0.02–0.04, intentional scroll > 0.05
+    if (Math.abs(delta) > 0.05 && canTriggerGesture("scroll")) {
+      lockGesture("scroll", 300);
+      scrollReader(delta * 500);
       showGesture("Scroll");
-
-      setTimeout(releaseGesture, 200);
-
+      setTimeout(releaseGesture, 150);
     }
   }
 
-  previousY = currentY;
+  previousWristY = currentY;
 }
 
-
-// function detectPinch(landmarks) {
-
-//   const thumb = landmarks[4];
-//   const index = landmarks[8];
-
-//   const dx = thumb.x - index.x;
-//   const dy = thumb.y - index.y;
-
-//   const distance = Math.sqrt(dx * dx + dy * dy);
-
-//   if (previousPinch !== null) {
-
-//     const delta = distance - previousPinch;
-
-//     if (Math.abs(delta) > 0.01) {
-
-//       zoomReader(delta * 3);
-
-//       showGesture("Zoom");
-
-//     }
-//   }
-
-//   previousPinch = distance;
-// }
+// ── Zoom (pinch) ─────────────────────────────────────────
 
 function detectPinch(landmarks) {
-
   const thumb = landmarks[4];
   const index = landmarks[8];
 
   const dx = thumb.x - index.x;
   const dy = thumb.y - index.y;
-
-  const distance = Math.sqrt(dx * dx + dy * dy);
+  const distance = Math.sqrt(dx*dx + dy*dy);
 
   if (previousPinch !== null) {
-
     const delta = distance - previousPinch;
 
     if (Math.abs(delta) > 0.015 && canTriggerGesture("zoom")) {
-
-      lockGesture("zoom");
-
+      lockGesture("zoom", 300);
       zoomReader(delta * 3);
-
       showGesture("Zoom");
-
-      setTimeout(releaseGesture, 200);
-
+      setTimeout(releaseGesture, 150);
     }
   }
 
   previousPinch = distance;
 }
 
-
-
-
-let previousThumbY = null;
-
-// function detectBrightness(landmarks) {
-
-//   const thumb = landmarks[4];
-//   const currentY = thumb.y;
-
-//   if (previousThumbY !== null) {
-
-//     const delta = previousThumbY - currentY;
-
-//     if (Math.abs(delta) > 0.01) {
-
-//       adjustBrightness(delta * 0.5);
-
-//       showGesture("Brightness");
-
-//     }
-//   }
-
-//   previousThumbY = currentY;
-// }
+// ── Brightness (thumb up = brighter, thumb down = dimmer) ─
 
 function detectBrightness(landmarks) {
-
   const thumb = landmarks[4];
-  const index = landmarks[8];
-
-  const thumbExtended = thumb.y < index.y;
-
   const currentY = thumb.y;
 
-  if (previousThumbY !== null && thumbExtended) {
+  if (previousThumbY !== null) {
+    const delta = previousThumbY - currentY; // negative = thumb moving down
 
-    const delta = previousThumbY - currentY;
-
-    if (Math.abs(delta) > 0.02 && canTriggerGesture("brightness")) {
-
-      lockGesture("brightness");
-
+    if (Math.abs(delta) > 0.025 && canTriggerGesture("brightness")) {
+      lockGesture("brightness", 250);
       adjustBrightness(delta * 0.5);
-
       showGesture("Brightness");
-
-      setTimeout(releaseGesture, 300);
-
+      setTimeout(releaseGesture, 200);
     }
   }
 
   previousThumbY = currentY;
 }
 
-
-
-
-let pointHoldStart = null;
-
-// function detectHighlight(landmarks) {
-
-//   const index = landmarks[8];
-//   const middle = landmarks[12];
-
-//   const distance = Math.abs(index.y - middle.y);
-
-//   const pointing = distance > 0.1;
-
-//   if (pointing) {
-
-//     if (!pointHoldStart) {
-//       pointHoldStart = Date.now();
-//     }
-
-//     const heldTime = Date.now() - pointHoldStart;
-
-//     if (heldTime > 800) {
-
-//       highlightSentence();
-
-//       showGesture("Highlight");
-
-//       pointHoldStart = null;
-//     }
-
-//   } else {
-
-//     pointHoldStart = null;
-
-//   }
-
-// }
-
-let lastIndexY = null;
-let stillStart = null;
+// ── Highlight (point & hold) ─────────────────────────────
 
 function detectHighlight(landmarks) {
-
   const index = landmarks[8];
+  const currentY = index.y;
 
   if (lastIndexY !== null) {
+    const movement = Math.abs(currentY - lastIndexY);
 
-    const movement = Math.abs(index.y - lastIndexY);
+    // Raised from 0.002 to 0.012 — smoothing still leaves small drift at 0.002
+    if (movement < 0.012) {
+      if (!stillStart) stillStart = Date.now();
 
-    if (movement < 0.002) {
+      const held = Date.now() - stillStart;
 
-      if (!stillStart) {
-        stillStart = Date.now();
-      }
-
-      const holdTime = Date.now() - stillStart;
-
-      if (holdTime > 1200 && canTriggerGesture("highlight")) {
-
-        lockGesture("highlight");
-
+      if (held > 1000 && canTriggerGesture("highlight")) {
+        lockGesture("highlight", 800);
         highlightSentence();
-
-        showGesture("Highlight");
-
+        showGesture("Highlight ✓");
         stillStart = null;
-
         setTimeout(releaseGesture, 600);
-
       }
-
     } else {
-
       stillStart = null;
-
     }
   }
 
-  lastIndexY = index.y;
+  lastIndexY = currentY;
 }
