@@ -53,3 +53,19 @@ body {
   width: 240px;
   border-radius: 8px;
 }
+
+
+
+#camera {
+  display: none;
+}
+
+#debug-canvas {
+  display: block;
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;   
+  width: 200px;
+  border-radius: 8px;
+  pointer-events: none;
+}
