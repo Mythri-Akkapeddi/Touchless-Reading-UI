@@ -27,7 +27,7 @@
   height: 24px;
 }
 
-#gesture-feedback {
+/* #gesture-feedback {
   position: fixed;
   top: 1rem;
   right: 1rem;
@@ -40,4 +40,21 @@
 
   font-size: 0.85rem;
   opacity: 0;
+} */
+
+#gesture-feedback {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+
+  background: rgba(0, 0, 0, 0.72);
+  color: white;
+
+  padding: 8px 14px;
+  border-radius: 12px;           /* slightly less pill-shaped to fit the bar */
+  min-width: 160px;
+
+  font-size: 13px;
+  opacity: 0;
+  transition: opacity 0.2s;
 }
