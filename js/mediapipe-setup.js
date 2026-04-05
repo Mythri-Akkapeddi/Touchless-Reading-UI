@@ -3,27 +3,30 @@ const canvas = document.getElementById("debug-canvas");
 const ctx = canvas.getContext("2d");
 
 const hands = new Hands({
-  locateFile: (file) => {
-    return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
-  }
+  locateFile: (file) =>
+    `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
 });
 
 hands.setOptions({
   maxNumHands: 1,
   modelComplexity: 1,
-  minDetectionConfidence: 0.7,
-  minTrackingConfidence: 0.7
+  minDetectionConfidence: 0.6, // slightly lowered for real-world use
+  minTrackingConfidence: 0.6
 });
 
 hands.onResults(onResults);
 
 function onResults(results) {
-
   ctx.save();
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  if (results.multiHandLandmarks) {
+  const hasHand =
+    results.multiHandLandmarks &&
+    results.multiHandLandmarks.length > 0;
 
+  updateHealthDot(hasHand ? 1 : 0);
+
+  if (hasHand) {
     for (const landmarks of results.multiHandLandmarks) {
 
       drawConnectors(ctx, landmarks, HAND_CONNECTIONS);
@@ -32,7 +35,6 @@ function onResults(results) {
       const smoothed = smoothLandmarks(landmarks);
 
       detectGestures(smoothed);
-
     }
   }
 
